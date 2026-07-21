@@ -1,0 +1,4 @@
+interface:
+  display_name: "2+2Video"
+  short_description: "生成制作级角色圣经与可硬切串联的 Seedance 视频"
+  default_prompt: "Use $2-2-video to build a production-grade master character bible, then write linked 15-second Seedance 2 ref2v prompts."
