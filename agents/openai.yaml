@@ -1,4 +1,4 @@
 interface:
   display_name: "2+2Video"
-  short_description: "生成制作级角色圣经与可硬切串联的 Seedance 视频"
-  default_prompt: "Use $2-2-video to build a production-grade master character bible, then write linked 15-second Seedance 2 ref2v prompts."
+  short_description: "Generate GPT Image 2 and hard-cut video plans"
+  default_prompt: "Use $2-2-video to turn this idea into GPT Image 2 assets and 15-second Seedance 2 clips with hard-cut continuity."
