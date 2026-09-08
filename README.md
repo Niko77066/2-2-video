@@ -1,12 +1,14 @@
 # 2+2Video
 
-`2-2-video` is a Codex skill for turning a story or product idea into a production-ready AI video packet. It creates reusable GPT Image 2 character bibles, stable Seedance 2 reference maps, linked 15-second ref2v prompts, hard-cut continuity plans, and SFX-only sound direction.
+`2-2-video` is a Codex skill for turning a story or product idea into a production-ready AI video packet. It designs the characters first, then creates reusable GPT Image 2 character boards, stable Seedance 2 reference maps, linked 15-second ref2v prompts, hard-cut continuity plans, and SFX-only sound direction.
 
 ## What it provides
 
-- Master character and key-object production boards
+- Character design sheets with strong silhouettes, contrast personalities, and fixed English prompt keywords
+- Cinematic 16:9 character introduction boards, plus a low-freedom master board for maximum single-character consistency
+- Key-object production boards
 - Fixed reference numbering across every video segment
-- Self-contained 15-second Seedance 2 prompts
+- Self-contained 15-second Seedance 2 prompts with a film header, locked reference block, and per-beat camera and light direction
 - Explicit hard-cut end frames and continuity handles
 - Diegetic ambience and synchronized SFX without BGM
 - Correct Seedance 2 API payload guidance
