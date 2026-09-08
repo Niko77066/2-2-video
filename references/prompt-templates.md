@@ -113,6 +113,110 @@ NEXT SEGMENT CUT HANDLE
 HARD CUT IN to [different shot size/angle], preserving only [subject / gaze / motion direction / object position / color / screen axis].
 ```
 
+## Seedance 2.5 — native 30-second ten-shot clip
+
+Do not stretch the 15-second five-beat template. A native 30-second clip has exactly ten shots, normally one new shot every 2.5-3.5 seconds. Every shot after SHOT 01 begins with an explicit hard cut to a different shot size or angle. Each shot contains one primary visible action and one direct visible consequence; split multi-step choreography across shots. The block names match the 15-second template so the same checklist and validator apply.
+
+```text
+A native 30-second [STYLE] animated short film generated with Seedance 2.5. [ASPECT_RATIO]. [Color palette].
+
+SUBJECTS
+[Character A] @Image1 ([clarifier]): [appearance]; [movement quality]; [action specialty]; [role in this clip]
+[Character B] @Image2 ([clarifier]): [appearance]; [movement quality]; [action specialty]; [role in this clip]
+[Key object] @Image3 ([clarifier, if referenced]): [locked construction and placement]
+
+ENVIRONMENT
+[Architecture, period, fixed furniture, paths, foreground/background, spatial restrictions]
+
+STYLE
+[Medium/rendering style]; [lighting]; [depth of field]; [texture]; cinematic lighting; brisk readable action; real physical contact; stable spatial continuity; temporal consistency; no flicker; no identity drift; no wardrobe change; no prop redesign
+
+CONTINUITY
+Keep @Image1, @Image2, and @Image3 designs exact. Preserve wardrobe, faces, proportions, object construction, screen direction, spatial axis, lighting logic, and current damage state. [Cross-clip continuity handle if another clip precedes this one.]
+
+AUDIO RULE
+[Default: no BGM, no music, no score; only diegetic ambience and synchronized physical sound effects; no dialogue or narration.]
+[Native-audio projects: replace this block with the AUDIO LOCK version in audio-production.md.]
+
+SHOT-DENSITY LOCK
+Exactly ten shots. Do not merge adjacent shots. SHOT 02-10 each begin with a visible HARD CUT IN
+to a different shot size or camera angle. No continuous tracking shot may cover more than one shot block.
+Each shot has one primary action and one immediate visible result across all of its prose, not only the
+labeled Action line. Do not hide extra sequential actions in the scene description. Keep action brisk and
+decisive at natural speed. Do not use slow motion. Do not use slow push-ins, gentle arcs, controlled orbits,
+or smooth tracking in two adjacent action shots. No fade, dissolve, morph, whip transition, or generated transition.
+
+TIMELINE
+[0s-3s] SHOT 01 — HOOK
+[Shot size]. [Immediate anomaly, danger, strong action, scale contrast, or absurd visual].
+Camera: [one brisk movement]. Light: [light state].
+Action: [one primary action] → Result: [one visible state change].
+SFX: [visible-source sound].
+
+[3s-6s] SHOT 02 — HARD CUT IN — GOAL / PURSUIT
+[Different shot size or angle]. [Subject commits to the goal].
+Camera: [one movement]. Light: [light state].
+Action: [one action] → Result: [one visible consequence].
+SFX: [visible-source sound].
+
+[6s-9s] SHOT 03 — HARD CUT IN — OBSTACLE
+[Different shot size or angle]. [One new obstacle appears before the reaction].
+Camera: [one movement]. Action: [obstacle action] → Result: [clear threat state].
+SFX: [visible-source sound].
+
+[9s-12s] SHOT 04 — HARD CUT IN — IMMEDIATE RESPONSE
+[Different shot size or angle]. [One decisive response].
+Camera: [one movement]. Action: [response] → Result: [obstacle avoided, redirected, or worsened].
+SFX: [impact, material, distance].
+
+[12s-15s] SHOT 05 — HARD CUT IN — ESCALATION
+[Different shot size or angle]. [One escalation that changes space, speed, ownership, or danger].
+Camera: [one movement]. Action: [one action] → Result: [new state readable at 15s].
+SFX: [visible-source sound].
+
+[15s-18s] SHOT 06 — HARD CUT IN — MIDPOINT REVERSAL
+[Different shot size or angle]. [A reveal or reversal contradicts the apparent goal].
+Camera: [one movement]. Action: [one reveal action] → Result: [new objective or danger].
+SFX: [visible-source sound].
+
+[18s-21s] SHOT 07 — HARD CUT IN — NEW DANGER
+[Different shot size or angle]. [The reversal produces one immediate danger].
+Camera: [one movement]. Action: [one danger action] → Result: [specific spatial consequence].
+SFX: [one precise sound chain].
+
+[21s-24s] SHOT 08 — HARD CUT IN — CLIMAX ACTION
+[Different shot size or angle]. [One decisive climax action].
+Camera: [one energetic movement]. Action: [one action] → Result: [conflict physically resolves or tips].
+SFX: [synchronized climax sound].
+
+[24s-28s] SHOT 09 — HARD CUT IN — PAYOFF
+[Different shot size or angle]. [One emotional or visual payoff; do not begin the final hold yet].
+Camera: [one short settling movement that stops completely by 28s].
+Action: [one payoff action] → Result: [exact final pose and prop state].
+SFX: [final action sound completes before 28s].
+
+[28s-30s] SHOT 10 — HARD CUT IN — HARD-CUT END FRAME
+[Exact shot size, lens feel, angle, pose, gaze, expression, object position/orientation,
+foreground/background geometry, and light state]. Camera locked. Resolve all motion.
+Hold this exact readable composition for 0.3-0.7 seconds. End precisely on this frame.
+No fade, dissolve, morph, whip transition, generated transition, or camera drift.
+SFX: [final physical sound] resolves into [diegetic room tone].
+
+FINAL ENDING
+This is the final clip: end on SHOT 10. If another generated clip follows, replace this paragraph with
+NEXT SEGMENT CUT HANDLE: HARD CUT IN to [different shot size or angle], preserving only [one visual handle].
+```
+
+Native-30s pacing invariants:
+
+- Exactly 10 shots, not 5-7 long beats.
+- New shot, new information, new danger, new joke, new visual change, or reversal at least every 3 seconds.
+- SHOT 02-10 explicitly say `HARD CUT IN`; timestamps alone do not guarantee a cut.
+- One primary action plus one direct visible consequence per shot.
+- Count the whole shot description: a sequence such as jump → cross → land, or climb out → shake off → settle, must be split across shots even if the `Action:` line names only one step.
+- No two adjacent action shots use slow, smooth, gentle, or controlled camera language.
+- SHOT 09 resolves the action by 28s; SHOT 10 is a stable end frame, not a new action beat.
+
 ## Camera vocabulary
 
 Use one concrete verb per beat:
@@ -160,11 +264,27 @@ Replace musical timing cues with physical ones:
 
 Do not merely rename music as `rhythmic ambience`. Keep every sound tied to a visible physical source.
 
+## Native-audio prompt guide
+
+只在原生 BGM / 对白项目里用；默认项目沿用上面的 SFX-only 写法。完整流程见 [audio-production.md](audio-production.md)。
+
+| Avoid | Use instead |
+|---|---|
+| exciting music | fixed 86 BPM marimba motif, rising two-note phrase, low under dialogue |
+| same voice as before | exact current-segment @AudioN slice from the character's single project master |
+| dramatic sound effects | named visible-source impacts with material, distance and timing |
+| music suddenly changes | same motif with thinner/thicker orchestration and an explicit energy change |
+| dialogue over loud score | dialogue forward; BGM ducked at least 8-12 dB during speech |
+
+BGM 身份跨片不变。每个音效都要有可见或空间上说得通的来源。没有对白的 beat 写 `Dialogue: none`。
+
 ## Minimal JSON plan
+
+`scripts/validate_plan.py` checks this shape: one shot per `ceil(duration / 3)` (5 for 15s, 10 for 30s), contiguous beats, a locked end anchor in the final 3 seconds, a hard-cut handle between segments, the six prompt sections, and the audio rules for the declared mode.
 
 ```json
 {
-  "project": {"title": "Example", "total_duration_seconds": 30, "ratio": "16:9"},
+  "project": {"title": "Example", "total_duration_seconds": 15, "ratio": "16:9", "audio_mode": "sfx_only"},
   "assets": {"characters": [{"id": "char-a", "name": "A", "image_prompt": "..."}]},
   "segments": [
     {
@@ -172,14 +292,32 @@ Do not merely rename music as `rhythmic ambience`. Keep every sound tied to a vi
       "duration_seconds": 15,
       "references": {"ref_images": ["char-a"]},
       "beats": [
-        {"start": 0, "end": 12.5, "shot_size": "medium", "camera": "push-in", "action": "..."},
-        {"start": 12.5, "end": 15, "shot_size": "close-up", "camera": "locked", "action": "..."}
+        {"start": 0, "end": 3, "shot_size": "wide", "camera": "crash zoom", "action": "..."},
+        {"start": 3, "end": 6, "shot_size": "medium", "camera": "whip pan", "action": "..."},
+        {"start": 6, "end": 10, "shot_size": "close-up", "camera": "scale contrast", "action": "..."},
+        {"start": 10, "end": 12.5, "shot_size": "medium wide", "camera": "fast dolly", "action": "..."},
+        {"start": 12.5, "end": 15, "shot_size": "extreme close-up", "camera": "locked", "action": "..."}
       ],
-      "end_anchor": {"start": 12.5, "end": 15, "shot_size": "close-up", "camera": "locked", "composition": "...", "subject_state": "...", "hold_seconds": 0.5},
-      "next_opening": {"cut": "hard", "shot_size": "wide", "visual_link": "same object position"},
+      "end_anchor": {"start": 12.5, "end": 15, "shot_size": "extreme close-up", "camera": "locked", "composition": "...", "subject_state": "...", "hold_seconds": 0.5},
+      "next_opening": {"cut": "hard", "shot_size": "high wide", "visual_link": "same object position"},
       "audio": {"bgm": false, "sfx_only": true, "events": [{"time": 4.2, "sound": "case latch"}]},
       "video_prompt": "A 15-second ... film ... SUBJECTS ... ENVIRONMENT ... STYLE ... CONTINUITY ... AUDIO RULE: NO BGM, SFX ONLY ... TIMELINE ... HARD-CUT END FRAME ..."
     }
   ]
 }
 ```
+
+Native-audio projects set `project.audio_mode` to `"native"` and replace the segment `audio` block:
+
+```json
+{
+  "audio": {
+    "bgm": true,
+    "bgm_identity": "86 BPM marimba motif, rising two-note phrase",
+    "dialogue": [{"character": "char-a", "audio_ref": "audio/S01_char-a.wav", "time": 6.0}],
+    "events": [{"time": 4.2, "sound": "case latch"}]
+  }
+}
+```
+
+A 30-second Seedance 2.5 clip uses `"duration_seconds": 30`, ten beats, an end anchor at `28 → 30`, and a prompt whose SHOT 02-10 each say `HARD CUT IN`.

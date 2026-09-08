@@ -15,17 +15,34 @@ Prompt 写法采用电影级写法：角色板按 AAA / Netflix 设计板标准�
 
 - 创建或修改角色资产时，读取 [references/master-character-board.md](references/master-character-board.md)。
 - 需要完整 Prompt 模板时，读取 [references/prompt-templates.md](references/prompt-templates.md)。
+- 片段是 Seedance 2.5 原生 30 秒时，读取 [references/prompt-templates.md](references/prompt-templates.md) 的 `Seedance 2.5 — native 30-second ten-shot clip` 模板。
+- 项目需要原生 BGM、出镜对白或跨片音色一致时，读取 [references/audio-production.md](references/audio-production.md)。
+- 需要真正调用 API、组织 payload 或排查任务时，读取 [references/seedance-api.md](references/seedance-api.md)。
+
+## 预设与可覆盖
+
+下文的镜头数、约三秒节奏、硬切结束帧、默认声音策略和对应检查项是本 skill 的**预设**，不是模型能力限制。用户指定别的节奏、镜头数、转场或声音方案时，同步调整全部相关模板与检查项，不要用预设拒绝执行。
+
+不随预设变化的三类约束：供应商真实的时长/分辨率/参考媒体限制、角色与道具的连续性锁、付费任务的记录与去重纪律。
+
+预设本身：
+
+1. 镜头密度公式 `ceil(duration / 3)`：15 秒固定 5 镜，原生 30 秒固定 10 镜。绝不通过把每个 beat 从约 3 秒拉长到 5 秒来填时长。
+2. 每个镜头 2.5-3.5 秒，只有一个主景别、最多一个主要运镜、一个主动作和一个直接结果。
+3. 每个生成片段最后 1.5-3 秒是完全稳定、可精确描述的 `HARD-CUT END FRAME`：15 秒默认 `0:12.5-0:15`，30 秒默认 `0:28-0:30`。
+4. 片段之间、以及原生 30 秒单片的 SHOT 02-10 之间一律 `HARD CUT IN`，立即换景别或角度，只保留一个视觉接点。
+5. 声音默认只有可见来源的环境声和同步音效，无 BGM、无对白；需要原生 BGM 或出镜对白时切换到 [references/audio-production.md](references/audio-production.md) 的完整声音流程。
 
 ## 输出生产包
 
 按以下顺序输出：
 
-1. 简短假设：总时长、比例、风格、对白规则、结尾。
-2. 故事和片段拆分：每段 15 秒，说明段落功能与硬切点。
+1. 简短假设：总时长、比例、风格、对白规则、声音策略、结尾。
+2. 故事和片段拆分：15 秒每段 5 镜，原生 30 秒每段 10 镜，说明段落功能与硬切点。
 3. 角色、关键道具和场景资产计划。
 4. 每个资产一条可直接用于 Image2 的 Prompt。
 5. 固定的 Seedance2 参考图映射，例如 `@Image1 = 主角 A`。
-6. 每个 15 秒片段一条可直接用于 Seedance2 的视频 Prompt。
+6. 每个片段一条可直接用于 Seedance2 / Seedance 2.5 的视频 Prompt，分镜数量必须与时长匹配。
 7. 片段之间的硬切连续性表。
 8. 本地片段文件命名和硬切合成方式。
 9. 用户要求执行 Seedance2 或生成 API payload 时，附上完整请求体和关键校验。
@@ -37,14 +54,15 @@ Prompt 写法采用电影级写法：角色板按 AAA / Netflix 设计板标准�
 
 提取并锁定：总时长、画幅、视觉风格、重复出现的角色、关键道具、环境、对白规则、声音规则、结尾动作。
 
-- 默认总时长是 15 秒的整数倍，每段完整 15 秒。
-- 不是 15 秒整数倍时，优先询问是否调整总时长；不要悄悄生成一个过短的末段。
-- 15 秒内使用 5 个递进镜头：建立/钩子 → 冲突 → 升级 → 爆发 → 结尾定格。
+- 默认使用 Seedance2 的 15 秒片段，总时长是 15 秒的整数倍；用户明确要求 Seedance 2.5 时可以用单条原生 30 秒，总时长按各片段时长求和。
+- 时长凑不齐整段时，优先询问是否调整总时长；不要悄悄生成一个过短的末段。
+- 镜头数按 `ceil(duration / 3)`：15 秒 5 个递进镜头（建立/钩子 → 冲突 → 升级 → 爆发 → 结尾定格）；原生 30 秒 10 个递进镜头（钩子 → 目标/追逐 → 障碍 → 应对 → 升级 → 中点反转 → 新危险 → 爆发 → 情绪回报 → 结尾定格）。
 - 第 1 秒必须有危险、异常、强动作、巨大尺度反差或荒谬视觉钩子。
 - 每 3 秒至少出现一次新信息、新危险、新笑点、新视觉变化或反转。
 - 节奏是：发现 → 升级 → 更离谱 → 爆发 → 安静余韵。故事必须越来越失控，不能一个镜头讲完。
 - 视觉动作优先于解释性对白；让动作、表情、空间、光影和声音承担叙事。
 - 角色要有强轮廓、性格反差、微情绪和明确的行动特长。
+- 声音策略在这一步就定死：默认无 BGM、无对白，只有可见来源的环境声和音效；需要原生 BGM 或出镜对白时，同时锁定 BGM 身份和每个重复角色的音色，并按 [references/audio-production.md](references/audio-production.md) 先做角色台词母带。
 
 ### 角色设计
 
@@ -198,9 +216,11 @@ Neutral studio background, even light, no scene, no extra objects, no watermark.
 
 在视频 Prompt 中总是写成 `@Image1 (主角 A)`，不要写“上面的参考图”这类模糊指代。
 
-## 3. 为每个片段写 Seedance2 Prompt
+## 3. 为每个片段写 Seedance2 / Seedance 2.5 Prompt
 
-每段必须是自洽的 15 秒视频 Prompt。不要把一条 45 秒故事塞进一条 Prompt；拆成 `S01`、`S02`、`S03`……，每段都重新声明片头、主体和连续性。
+每段必须是自洽的视频 Prompt。不要把一条 45 秒故事塞进一条 Prompt；拆成 `S01`、`S02`、`S03`……，每段都重新声明片头、主体和连续性。
+
+15 秒片段用下面的五镜模板。原生 30 秒必须用 [references/prompt-templates.md](references/prompt-templates.md) 的 `Seedance 2.5 — native 30-second ten-shot clip` 十镜模板，不得复制五镜模板再把时间窗口拉长成 6 秒。
 
 视频 Prompt 固定使用以下结构：
 
@@ -231,6 +251,8 @@ AUDIO RULE
 No BGM, no music, no score, no melody, no song, no choir, no musical percussion.
 Generate only diegetic ambience and synchronized physical sound effects.
 No dialogue or narration unless explicitly requested.
+[原生声音项目改写本块：见 references/audio-production.md 的 AUDIO LOCK 版本，
+ 固定 BGM 身份、@AudioN 台词切片、对白避让与 Dialogue: none 规则。]
 
 TIMELINE
 0:00-0:03 [Shot size]. [Scene]. [Character] [exact visible action].
@@ -265,10 +287,12 @@ Prompt 要求：
 - 不写“生成平滑转场”；片段之间必须由剪辑硬切。
 - `0:12.5-0:15` 不是新的动作段，而是高潮动作解决后的稳定出点。
 - 除最后一段外，每条 Prompt 都要写出 `NEXT SEGMENT CUT HANDLE`；最后一段改写成明确的最终结束构图。
+- 分镜数与时长必须匹配：15 秒正好 5 镜，原生 30 秒正好 10 镜，且 SHOT 02-10 每个时间块标题显式写 `HARD CUT IN`。
+- 原生声音项目里，每个时间块分别写 `BGM` / `Dialogue` / `Ambience` / `SFX` / `Mix`；没有对白的时间块写 `Dialogue: none`，避免模型自己补话。
 
 ## 4. 片段边界：硬切而不是生成转场
 
-每段最后 1.5-3 秒预留为 `HARD-CUT END FRAME`：
+每段最后 1.5-3 秒预留为 `HARD-CUT END FRAME`：15 秒默认 `0:12.5-0:15`，原生 30 秒默认 `0:28-0:30`。
 
 - 镜头完全锁定，或在结束前完全稳定。
 - 明确景别、角度、镜头感、角色姿态、视线、表情、道具位置和光线。
@@ -276,6 +300,8 @@ Prompt 要求：
 - 禁止 fade、dissolve、morph、whip-transition 或生成式转场。
 
 下一段必须以 `HARD CUT IN` 开始，并立即改变景别或角度，同时保留一个视觉接点：同一主体、视线、运动方向、道具位置、色彩高光或屏幕轴线。
+
+原生 30 秒单片内部的 SHOT 02-10 遵守同一规则：每个时间块开头显式写 `HARD CUT IN`，不要指望模型自己把时间戳理解成切镜；一个连续跟拍不得覆盖两个以上时间块。
 
 示例：
 
@@ -327,82 +353,51 @@ ffmpeg -y -f concat -safe 0 -i hard-cut-list.txt \
 
 合成后用 `ffprobe` 检查总时长、分辨率、音轨和片段边界；不要把“生成模型返回成功”当作剪辑完成。
 
-## 6. 调用 Seedance2 API
+## 6. 调用 Seedance2 / Seedance 2.5 API
 
-仅当用户要求实际调用 Seedance2、生成 API payload 或排查任务时使用本节。只要输出 Prompt，不要额外加入 API 请求体。
+仅当用户要求实际调用、生成 API payload 或排查任务时使用本节。只要输出 Prompt，不要额外加入 API 请求体。完整请求体、Python 示例、参考媒体上限和排查步骤见 [references/seedance-api.md](references/seedance-api.md)。
 
-对于 `POST /v1/videos`，使用模型 `doubao-seedance-2-0-260128`，并把 `duration` 放在 `metadata` 内。禁止把 `duration` 放在请求根级别：网关可能忽略根级别的值并生成默认时长的片段，同时仍返回成功。
+两代模型走同一个 `POST /v1/videos`，按片段时长选模型：
 
-完整请求体：
+| 用途 | 模型 | 时长 | 最高分辨率 | 分镜数 |
+|---|---|---:|---:|---:|
+| 默认 15 秒片段 | `doubao-seedance-2-0-260128` | `4-15s` | `1080p` | 5 |
+| 原生 30 秒片段 | `doubao-seedance-2-5-260628` | `4-30s` | `720p` | 10 |
 
-```json
-{
-  "model": "doubao-seedance-2-0-260128",
-  "prompt": "<完整的 Seedance2 15 秒片段 Prompt>",
-  "metadata": {
-    "content": [],
-    "resolution": "1080p",
-    "ratio": "16:9",
-    "generate_audio": false,
-    "duration": 15
-  }
-}
-```
+四条不能省的规则：
 
-参数规则：
+- `duration` 必须放在 `metadata` 内，且是整数。放在请求根级别时，网关可能忽略它、生成默认时长的片段，并且仍然返回成功。
+- 参考图必须真正进入 `metadata.content`，每项写明 `role`（`reference_image` / `reference_audio`）。`content` 留空数组等于没有参考图，Prompt 里的 `@Image1` 就成了空指针，角色一致性全部失效。
+- `metadata.generate_audio` 默认 `false`，与默认的“无 BGM、只有可见来源声音”一致；原生声音项目改为 `true`，并按 [references/audio-production.md](references/audio-production.md) 传 `reference_audio`。
+- `@Image1..@ImageN`、`@Audio1..@AudioN` 的编号必须与 `metadata.content` 的数组顺序严格一致，且不跨片段重排。
 
-- `metadata.duration` 必须是整数，范围为 `4` 到 `15`；对于本 skill 的标准片段，使用 `15`。
-- `metadata.ratio` 使用 `16:9`、`9:16` 或用户指定的支持比例。
-- `metadata.resolution` 使用 `480p`、`720p` 或 `1080p`，按任务要求选择。
-- `metadata.generate_audio` 默认 `false`，因为 Prompt 默认要求无 BGM、只保留物理环境声和 SFX；用户需要生成音频时才改为 `true`。
-- 参考图编号仍然写入视频 Prompt 的 `@Image1`、`@Image2` 等映射；不要在不同片段间重排。
+付费纪律：
 
-提交示例：
+- 每次提交立即持久化真实任务 ID、参考资产映射和片段编号，不要等整批 `Promise.all` 或整个脚本结束才记录。
+- 上游长时间 `running` 是允许状态。没有明确的“提交前被拒绝”证据时不要补交；状态不明时先查调用记录或等原进程终态。
+- 多片段生成用有界并发，失败片段保留任务 ID 再排查，不静默重提。
 
-```python
-import requests
+任务完成后立即下载返回的视频 URL，并用 `ffprobe` 测量实际时长；不要相信响应里的预计时长字段，也不要因为接口返回成功就跳过片段边界检查。
 
-payload = {
-    "model": "doubao-seedance-2-0-260128",
-    "prompt": video_prompt,
-    "metadata": {
-        "content": [],
-        "resolution": "1080p",
-        "ratio": "16:9",
-        "generate_audio": False,
-        "duration": 15,
-    },
-}
-
-resp = requests.post(
-    f"{base_url}/v1/videos",
-    headers={
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-    },
-    json=payload,
-    timeout=60,
-)
-resp.raise_for_status()
-task_id = resp.json().get("id") or resp.json().get("task_id")
-```
-
-任务完成后立即下载返回的 `metadata.url` 或供应商等价视频 URL，并用 `ffprobe` 测量实际时长；不要相信任务响应中的预计时长字段，也不要因为接口返回成功就跳过片段边界检查。
-
-如果用户要求使用 CDN 或外部参考资产，先确保 URL 对 Seedance2 可访问，再把它作为任务需要的参考资产使用；CDN 不是本 skill 的固定前置步骤。
+如果用户要求使用 CDN 或外部参考资产，先确保 URL 对生成侧可访问；CDN 不是本 skill 的固定前置步骤。
 
 ## 7. 交付前检查
 
 - [ ] 角色有强视觉轮廓、性格反差和行动特长，`Prompt 关键词(EN)` 在所有资产和片段里一致。
 - [ ] 角色、道具和环境资产已经用 Image2 固定，参考编号在所有片段中不变。
 - [ ] 角色板脸、手、服装层次和文字足够大可读；否则已改用单角色技术板。
-- [ ] 每个视频片段是完整 15 秒，Prompt 含片头声明和 `SUBJECTS`、`ENVIRONMENT`、`STYLE`、`CONTINUITY`、`AUDIO RULE`、`TIMELINE`。
-- [ ] 每段时间轴精确覆盖 15 秒，且最后 1.5-3 秒是锁定的硬切结束帧。
+- [ ] 每个片段的时长与模型匹配：Seedance2 不超过 15 秒；Seedance 2.5 原生片段不超过 30 秒且不请求 1080p。
+- [ ] Prompt 含片头声明和 `SUBJECTS`、`ENVIRONMENT`、`STYLE`、`CONTINUITY`、`AUDIO RULE`、`TIMELINE`；十镜模板同样保留这些块名。
+- [ ] 分镜数与时长匹配：15 秒正好 5 镜，30 秒正好 10 镜，没有把五段式拉长填时长。
+- [ ] 每段时间轴精确覆盖完整时长，且最后 1.5-3 秒是锁定的硬切结束帧（`0:12.5-0:15` 或 `0:28-0:30`）。
 - [ ] 每个 beat 只有一个主景别、一个主要运镜和一个主动作，`Camera:` 用的是具体镜头动词。
 - [ ] 视觉记忆点落在具体时间块里，并写进了对应片段的 Prompt。
 - [ ] 下一段以不同景别或角度硬切进入，并明确保留一个视觉接点。
+- [ ] 原生 30 秒单片的 SHOT 02-10 显式写了 `HARD CUT IN`，没有用连续跟拍吞掉多个 beat。
 - [ ] 没有 fade、dissolve、morph 或生成式转场要求。
-- [ ] 默认无 BGM；每个时间块都有可见来源对应的环境声或 SFX。
+- [ ] 声音符合本次锁定的策略：默认无 BGM、每个时间块都有可见来源的环境声或 SFX；原生声音项目里 BGM 身份跨片不变、对白时 BGM 已避让、无对白的块写了 `Dialogue: none`。
+- [ ] 原生对白项目里，每个重复角色的全部台词来自同一次 SeedAudio 母带，每段传自己的精确台词切片，并已用 ASR 和试听验收。
 - [ ] 脸、发型、服装层次、比例、道具结构、光线、屏幕方向和动作因果保持连续。
 - [ ] 本地片段已按顺序合成，输出文件可用 `ffprobe` 读取。
-- [ ] 如果生成 API payload，`duration` 位于 `metadata.duration`，不在请求根级别。
+- [ ] 如果生成 API payload：`duration` 位于 `metadata.duration`；`metadata.content` 真的带上了 `reference_image`（以及需要时的 `reference_audio`），不是空数组；编号与数组顺序一致。
+- [ ] 每次付费提交的任务 ID、参考资产映射、终态和下载文件都已记录，没有因为轮询安静而重复提交。
