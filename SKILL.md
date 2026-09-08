@@ -16,7 +16,7 @@ Prompt 写法采用电影级写法：角色板按 AAA / Netflix 设计板标准�
 - 创建或修改角色资产时，读取 [references/master-character-board.md](references/master-character-board.md)。
 - 需要完整 Prompt 模板时，读取 [references/prompt-templates.md](references/prompt-templates.md)。
 - 片段是 Seedance 2.5 原生 30 秒时，读取 [references/prompt-templates.md](references/prompt-templates.md) 的 `Seedance 2.5 — native 30-second ten-shot clip` 模板。
-- 项目需要原生 BGM、出镜对白或跨片音色一致时，读取 [references/audio-production.md](references/audio-production.md)。
+- 项目有对白、环境音或音效时读 [references/audio-production.md](references/audio-production.md)：对白、环境音和音效由模型原生生成，音乐一律后期单独加。
 - 需要真正调用 API、组织 payload 或排查任务时，读取 [references/seedance-api.md](references/seedance-api.md)。
 
 ## 预设与可覆盖
@@ -31,7 +31,7 @@ Prompt 写法采用电影级写法：角色板按 AAA / Netflix 设计板标准�
 2. 每个镜头 2.5-3.5 秒，只有一个主景别、最多一个主要运镜、一个主动作和一个直接结果。
 3. 每个生成片段最后 1.5-3 秒是完全稳定、可精确描述的 `HARD-CUT END FRAME`：15 秒默认 `0:12.5-0:15`，30 秒默认 `0:28-0:30`。
 4. 片段之间、以及原生 30 秒单片的 SHOT 02-10 之间一律 `HARD CUT IN`，立即换景别或角度，只保留一个视觉接点。
-5. 声音默认只有可见来源的环境声和同步音效，无 BGM、无对白；需要原生 BGM 或出镜对白时切换到 [references/audio-production.md](references/audio-production.md) 的完整声音流程。
+5. 声音：`generate_audio` 恒为 `true`，模型原生生成出镜对白（口型对齐 `@AudioN` 切片）、连续环境音和同步音效，**但不生成音乐**——BGM 在硬切合成后作为一条完整音轨单独加入，跨片段天然连续。对白只有模型能做（口型同步），音乐交给模型只会每段各生成一首、在切点跳曲。流程见 [references/audio-production.md](references/audio-production.md)。
 
 ## 输出生产包
 
@@ -62,7 +62,7 @@ Prompt 写法采用电影级写法：角色板按 AAA / Netflix 设计板标准�
 - 节奏是：发现 → 升级 → 更离谱 → 爆发 → 安静余韵。故事必须越来越失控，不能一个镜头讲完。
 - 视觉动作优先于解释性对白；让动作、表情、空间、光影和声音承担叙事。
 - 角色要有强轮廓、性格反差、微情绪和明确的行动特长。
-- 声音策略在这一步就定死：默认无 BGM、无对白，只有可见来源的环境声和音效；需要原生 BGM 或出镜对白时，同时锁定 BGM 身份和每个重复角色的音色，并按 [references/audio-production.md](references/audio-production.md) 先做角色台词母带。
+- 声音策略在这一步就定死：模型出对白、环境音和音效，BGM 后期单独加。因此现在就要锁定每个重复角色的音色（按 [references/audio-production.md](references/audio-production.md) 先做角色台词母带）和 BGM 身份（BPM、乐器、核心动机、情绪弧线），不要等到合成阶段才挑曲子。
 
 ### 角色设计
 
@@ -248,11 +248,18 @@ object construction, screen direction, spatial axis, lighting logic, and current
 [Cross-segment visual handle].
 
 AUDIO RULE
-No BGM, no music, no score, no melody, no song, no choir, no musical percussion.
-Generate only diegetic ambience and synchronized physical sound effects.
-No dialogue or narration unless explicitly requested.
-[原生声音项目改写本块：见 references/audio-production.md 的 AUDIO LOCK 版本，
- 固定 BGM 身份、@AudioN 台词切片、对白避让与 Dialogue: none 规则。]
+No BGM, no music, no score, no melody, no song, no choir, no musical percussion:
+music is added in post, not generated here.
+Generate continuous diegetic ambience, synchronized visible-source SFX,
+and only the exact specified dialogue.
+@Audio1 = [exact current-segment dialogue slice for Character A, if present]
+@Audio2 = [exact current-segment dialogue slice for Character B, if present]
+The matching character speaks the complete line from its @Audio reference exactly once with natural lip sync.
+Preserve the reference speaker identity, vocal age, accent, timbre, pitch, pace, articulation,
+emotion, microphone distance and room character.
+No paraphrase, repetition, truncation, extra dialogue, narration, lyrics, crowd words,
+extra speakers, or clipping. Leave headroom for the post-production music bed.
+Leave headroom for the separately added music bed.
 
 TIMELINE
 0:00-0:03 [Shot size]. [Scene]. [Character] [exact visible action].
@@ -283,12 +290,12 @@ Prompt 要求：
 - `Camera:` 使用镜头语言库里的具体动词；连续两个 beat 不要都写 `slow`、`smooth`、`gentle`、`controlled` 这类舒缓运镜，动作段尤其不行。
 - 每个 beat 写清光线状态，让光影参与叙事，而不是只描述动作。
 - 把“节奏”翻译成可见动作和物理声音，不写音乐代用品。
-- 默认无 BGM、无配乐；如用户明确要对白，只在对应时间点写对白及其反应。
+- Prompt 里显式禁止音乐，只写对白、环境音和音效；节奏由可见动作和物理声承担，音乐的事留给合成阶段。
 - 不写“生成平滑转场”；片段之间必须由剪辑硬切。
 - `0:12.5-0:15` 不是新的动作段，而是高潮动作解决后的稳定出点。
 - 除最后一段外，每条 Prompt 都要写出 `NEXT SEGMENT CUT HANDLE`；最后一段改写成明确的最终结束构图。
 - 分镜数与时长必须匹配：15 秒正好 5 镜，原生 30 秒正好 10 镜，且 SHOT 02-10 每个时间块标题显式写 `HARD CUT IN`。
-- 原生声音项目里，每个时间块分别写 `BGM` / `Dialogue` / `Ambience` / `SFX` / `Mix`；没有对白的时间块写 `Dialogue: none`，避免模型自己补话。
+- 每个时间块分别写 `Dialogue` / `Ambience` / `SFX` / `Mix`；没有对白的时间块写 `Dialogue: none`，避免模型自己补话。任何时间块都不写 `BGM` 行。
 
 ## 4. 片段边界：硬切而不是生成转场
 
@@ -351,6 +358,20 @@ ffmpeg -y -f concat -safe 0 -i hard-cut-list.txt \
   -c:v libx264 -crf 18 -pix_fmt yuv420p -c:a aac final_hard_cut.mp4
 ```
 
+### 加 BGM
+
+音乐不由模型生成，在这一步加入：一条覆盖全片的完整音轨，跨片段天然连续，不会在硬切点跳。
+
+```bash
+ffmpeg -y -i final_hard_cut.mp4 -i music.m4a \
+  -filter_complex "[1:a]volume=-14dB,afade=t=out:st=<END-2>:d=2[m];[0:a][m]amix=inputs=2:duration=first:dropout_transition=0[a]" \
+  -map 0:v -map "[a]" -c:v copy -c:a aac -b:a 192k final_with_music.mp4
+```
+
+- 音乐电平先压到对白之下（`-14dB` 起调，按实际试听调整）；需要自动避让时用 `sidechaincompress` 让对白轨压制音乐轨。
+- 音乐身份（BPM、乐器、核心动机、情绪弧线）在第 1 节就锁定，不要等到这一步才挑曲子。
+- 旁白（如果有）也在这一步用同一条 TTS 母带混入，不要作为 `reference_audio` 传给模型。
+
 合成后用 `ffprobe` 检查总时长、分辨率、音轨和片段边界；不要把“生成模型返回成功”当作剪辑完成。
 
 ## 6. 调用 Seedance2 / Seedance 2.5 API
@@ -368,7 +389,7 @@ ffmpeg -y -f concat -safe 0 -i hard-cut-list.txt \
 
 - `duration` 必须放在 `metadata` 内，且是整数。放在请求根级别时，网关可能忽略它、生成默认时长的片段，并且仍然返回成功。
 - 参考图必须真正进入 `metadata.content`，每项写明 `role`（`reference_image` / `reference_audio`）。`content` 留空数组等于没有参考图，Prompt 里的 `@Image1` 就成了空指针，角色一致性全部失效。
-- `metadata.generate_audio` 默认 `false`，与默认的“无 BGM、只有可见来源声音”一致；原生声音项目改为 `true`，并按 [references/audio-production.md](references/audio-production.md) 传 `reference_audio`。
+- `metadata.generate_audio` 恒为 `true`：模型出对白、环境音和音效。**音乐不靠这个参数关闭**——一关对白和环境音也一起没了；音乐靠 Prompt 里的 `AUDIO RULE` 显式禁止。有出镜对白时按 [references/audio-production.md](references/audio-production.md) 传 `reference_audio`。
 - `@Image1..@ImageN`、`@Audio1..@AudioN` 的编号必须与 `metadata.content` 的数组顺序严格一致，且不跨片段重排。
 
 付费纪律：
@@ -395,8 +416,9 @@ ffmpeg -y -f concat -safe 0 -i hard-cut-list.txt \
 - [ ] 下一段以不同景别或角度硬切进入，并明确保留一个视觉接点。
 - [ ] 原生 30 秒单片的 SHOT 02-10 显式写了 `HARD CUT IN`，没有用连续跟拍吞掉多个 beat。
 - [ ] 没有 fade、dissolve、morph 或生成式转场要求。
-- [ ] 声音符合本次锁定的策略：默认无 BGM、每个时间块都有可见来源的环境声或 SFX；原生声音项目里 BGM 身份跨片不变、对白时 BGM 已避让、无对白的块写了 `Dialogue: none`。
-- [ ] 原生对白项目里，每个重复角色的全部台词来自同一次 SeedAudio 母带，每段传自己的精确台词切片，并已用 ASR 和试听验收。
+- [ ] 每个时间块都有可见来源的环境声或 SFX，无对白的块写了 `Dialogue: none`，且成片里没有模型自己加的音乐。
+- [ ] BGM 已在硬切合成后作为单独音轨加入，对白清晰、峰值不削波、切点没有爆音。
+- [ ] 有对白时，每个重复角色的全部台词来自同一次 SeedAudio 母带，每段传自己的精确台词切片，并已用 ASR 和试听验收。
 - [ ] 脸、发型、服装层次、比例、道具结构、光线、屏幕方向和动作因果保持连续。
 - [ ] 本地片段已按顺序合成，输出文件可用 `ffprobe` 读取。
 - [ ] 如果生成 API payload：`duration` 位于 `metadata.duration`；`metadata.content` 真的带上了 `reference_image`（以及需要时的 `reference_audio`），不是空数组；编号与数组顺序一致。

@@ -90,18 +90,21 @@ CONTINUITY
 Keep @Image1, @Image2, and @Image3 designs exact. Preserve wardrobe, faces, proportions, object construction, screen direction, spatial axis, lighting logic, and current damage state. [Cross-segment continuity handle if this is not the first segment.]
 
 AUDIO RULE
-No BGM, no music, no score, no melody, no song, no choir, no musical percussion. Generate only diegetic ambience and synchronized physical sound effects. No dialogue or narration unless explicitly requested.
+No BGM, no music, no score, no melody, no song, no choir, no musical percussion: music is added in post, not generated here. Generate continuous diegetic ambience, synchronized visible-source SFX, and only the exact specified dialogue. @Audio1 = [exact current-segment dialogue slice, if present]. The matching character speaks the complete line from its @Audio reference exactly once with natural lip sync; preserve speaker identity, vocal age, accent, timbre, pitch, pace, articulation, emotion, microphone distance and room character. No paraphrase, repetition, truncation, extra dialogue, narration, lyrics, crowd words, extra speakers, or clipping. Leave headroom for the post-production music bed.
+Music is never generated here: the BGM is added as a separate track after the hard-cut assembly.
 
 TIMELINE
 0:00-[T1]
 [Shot size, lens feel]. [Exact action, reaction, geography, object position.]
 Camera: [one movement]. Light: [light state or change].
-SFX: [physical ambience and synchronized event]
+Dialogue: [speaker + @AudioN + emotion] or none
+Ambience: [space] | SFX: [visible-source event] | Mix: dialogue forward, headroom for post music
 
 [T1]-[T2]
 [Shot size, lens feel]. [Next causal beat.]
 Camera: [one movement]. Light: [light state or change].
-SFX: [physical events only]
+Dialogue: [line or none]
+Ambience: [continuous] | SFX: [visible-source event] | Mix: no clipping
 
 [Continue with contiguous beats; five beats total for a 15-second segment.]
 
@@ -135,8 +138,8 @@ CONTINUITY
 Keep @Image1, @Image2, and @Image3 designs exact. Preserve wardrobe, faces, proportions, object construction, screen direction, spatial axis, lighting logic, and current damage state. [Cross-clip continuity handle if another clip precedes this one.]
 
 AUDIO RULE
-[Default: no BGM, no music, no score; only diegetic ambience and synchronized physical sound effects; no dialogue or narration.]
-[Native-audio projects: replace this block with the AUDIO LOCK version in audio-production.md.]
+No BGM, no music, no score, no melody, no song, no choir, no musical percussion: music is added in post, not generated here. Generate continuous diegetic ambience, synchronized visible-source SFX, and only the exact specified dialogue. @Audio1 = [exact current-segment dialogue slice, if present]. The matching character speaks the complete line from its @Audio reference exactly once with natural lip sync; preserve speaker identity, vocal age, accent, timbre, pitch, pace, articulation, emotion, microphone distance and room character. No paraphrase, repetition, truncation, extra dialogue, narration, lyrics, crowd words, extra speakers, or clipping. Leave headroom for the post-production music bed.
+Music is never generated here: the BGM is added as a separate track after the hard-cut assembly.
 
 SHOT-DENSITY LOCK
 Exactly ten shots. Do not merge adjacent shots. SHOT 02-10 each begin with a visible HARD CUT IN
@@ -239,7 +242,7 @@ Rules:
 | smooth transition / seamless transition to the next scene | the model invents a generated transition that cannot be cut | `HARD-CUT END FRAME` plus `NEXT SEGMENT CUT HANDLE` |
 | fade out / dissolve / morph / whip transition | destroys the cut point and the reusable end composition | camera locked, motion resolved, 0.3-0.7s hold |
 | slow build, calm establishing pan as the opening | wastes the first second | danger, anomaly, strong action, scale contrast, or absurd visual in the first second |
-| epic music swells, rhythmic score | there is no BGM by default | physical sounds from visible sources |
+| epic music swells, rhythmic score | 音乐不由模型生成，写了只会让它自己垫一段每片不同的曲子 | 可见来源的物理声；BGM 在合成阶段作为单独音轨加入 |
 | the character feels nervous | the model cannot render stated emotion | a visible micro-behaviour: fake calm, hidden tremor, stiff smile |
 
 ## Hard-cut continuity table
@@ -252,7 +255,7 @@ Rules:
 
 ## SFX translation guide
 
-Replace musical timing cues with physical ones:
+音效层永远只写可见来源，无论是否有 BGM。把抽象的音乐化节奏提示换成物理事件：
 
 | Remove | Use instead |
 |---|---|
@@ -264,9 +267,9 @@ Replace musical timing cues with physical ones:
 
 Do not merely rename music as `rhythmic ambience`. Keep every sound tied to a visible physical source.
 
-## Native-audio prompt guide
+## Audio prompt guide
 
-只在原生 BGM / 对白项目里用；默认项目沿用上面的 SFX-only 写法。完整流程见 [audio-production.md](audio-production.md)。
+模型出对白 + 环境音 + 同步音效，**不出音乐**；BGM 在硬切合成后作为单独音轨加入。完整流程见 [audio-production.md](audio-production.md)。
 
 | Avoid | Use instead |
 |---|---|
@@ -280,11 +283,11 @@ BGM 身份跨片不变。每个音效都要有可见或空间上说得通的来�
 
 ## Minimal JSON plan
 
-`scripts/validate_plan.py` checks this shape: one shot per `ceil(duration / 3)` (5 for 15s, 10 for 30s), contiguous beats, a locked end anchor in the final 3 seconds, a hard-cut handle between segments, the six prompt sections, and the audio rules for the declared mode.
+`scripts/validate_plan.py` checks this shape: one shot per `ceil(duration / 3)` (5 for 15s, 10 for 30s), contiguous beats, a locked end anchor in the final 3 seconds, a hard-cut handle between segments, the six prompt sections, and the audio rules: no model-generated music, dialogue lines pointing at their own slices.
 
 ```json
 {
-  "project": {"title": "Example", "total_duration_seconds": 15, "ratio": "16:9", "audio_mode": "sfx_only"},
+  "project": {"title": "Example", "total_duration_seconds": 15, "ratio": "16:9", "music": {"identity": "86 BPM marimba motif, rising two-note phrase", "added_in": "assembly"}},
   "assets": {"characters": [{"id": "char-a", "name": "A", "image_prompt": "..."}]},
   "segments": [
     {
@@ -300,24 +303,13 @@ BGM 身份跨片不变。每个音效都要有可见或空间上说得通的来�
       ],
       "end_anchor": {"start": 12.5, "end": 15, "shot_size": "extreme close-up", "camera": "locked", "composition": "...", "subject_state": "...", "hold_seconds": 0.5},
       "next_opening": {"cut": "hard", "shot_size": "high wide", "visual_link": "same object position"},
-      "audio": {"bgm": false, "sfx_only": true, "events": [{"time": 4.2, "sound": "case latch"}]},
-      "video_prompt": "A 15-second ... film ... SUBJECTS ... ENVIRONMENT ... STYLE ... CONTINUITY ... AUDIO RULE: NO BGM, SFX ONLY ... TIMELINE ... HARD-CUT END FRAME ..."
+      "audio": {"bgm": false, "dialogue": [{"character": "char-a", "audio_ref": "audio/S01_char-a.wav", "time": 6.0}], "events": [{"time": 4.2, "sound": "case latch"}]},
+      "video_prompt": "A 15-second ... film ... SUBJECTS ... ENVIRONMENT ... STYLE ... CONTINUITY ... AUDIO RULE: NO BGM, no music, music added in post; Dialogue: char-a @Audio1 ... TIMELINE ... HARD-CUT END FRAME ..."
     }
   ]
 }
 ```
 
-Native-audio projects set `project.audio_mode` to `"native"` and replace the segment `audio` block:
-
-```json
-{
-  "audio": {
-    "bgm": true,
-    "bgm_identity": "86 BPM marimba motif, rising two-note phrase",
-    "dialogue": [{"character": "char-a", "audio_ref": "audio/S01_char-a.wav", "time": 6.0}],
-    "events": [{"time": 4.2, "sound": "case latch"}]
-  }
-}
-```
+每个片段的 `audio.bgm` 必须是 `false`，`video_prompt` 必须显式禁止音乐；BGM 身份写在 `project.music` 里，在合成阶段作为单独音轨加入。
 
 A 30-second Seedance 2.5 clip uses `"duration_seconds": 30`, ten beats, an end anchor at `28 → 30`, and a prompt whose SHOT 02-10 each say `HARD CUT IN`.

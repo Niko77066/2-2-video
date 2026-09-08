@@ -22,7 +22,9 @@ Use this only as a structural example. Replace the story details for the user's 
 0:12-0:15 — object reveal and emotional release; finish on a locked product frame
 ```
 
-## SFX-only correction
+## 音乐化提示 → 物理声
+
+模型不生成音乐，所以源 Prompt 里的拨弦、加速配乐、爵士鼓、音乐骤停和合唱爆发全部要换成可见来源的物理声；BGM 在硬切合成后作为单独音轨加入。
 
 Replace the source prompt's plucked strings, accelerating music, jazz drums, music cut, and choir burst with visible-source audio:
 

@@ -15,34 +15,12 @@
 
 ## 请求体
 
-默认 15 秒片段，无 BGM、只有可见来源声音：
+默认 15 秒片段（模型出对白、环境音和音效，不出音乐），有出镜对白时带上当前片段的精确台词切片：
 
 ```json
 {
   "model": "doubao-seedance-2-0-260128",
   "prompt": "<完整的 15 秒五镜片段 Prompt>",
-  "metadata": {
-    "content": [
-      {
-        "type": "image_url",
-        "image_url": {"url": "<character-or-scene-reference-url>"},
-        "role": "reference_image"
-      }
-    ],
-    "resolution": "1080p",
-    "ratio": "16:9",
-    "generate_audio": false,
-    "duration": 15
-  }
-}
-```
-
-原生声音项目（BGM + 出镜对白），额外传当前片段的精确台词切片：
-
-```json
-{
-  "model": "doubao-seedance-2-0-260128",
-  "prompt": "<含 AUDIO LOCK 的 15 秒片段 Prompt>",
   "metadata": {
     "content": [
       {
@@ -64,6 +42,10 @@
 }
 ```
 
+无对白的片段去掉 `reference_audio` 那一项，其余不变，`generate_audio` 仍是 `true`，并在 Prompt 里写 `Dialogue: none`。
+
+注意：**音乐不是靠这个参数关闭的**。`generate_audio: true` 只表示模型出声；不要音乐靠 Prompt 的 `AUDIO RULE` 显式禁止（模板已经写了）。BGM 在硬切合成后作为单独音轨加入。
+
 Seedance 2.5 原生 30 秒：
 
 ```json
@@ -80,7 +62,7 @@ Seedance 2.5 原生 30 秒：
     ],
     "resolution": "720p",
     "ratio": "16:9",
-    "generate_audio": false,
+    "generate_audio": true,
     "duration": 30
   }
 }
@@ -93,7 +75,7 @@ Seedance 2.5 原生 30 秒：
 - `@Image1..@ImageN`、`@Audio1..@AudioN` 与 `content` 数组顺序严格一一对应，且不跨片段重排。
 - `metadata.resolution`：Seedance2 可用 `480p` / `720p` / `1080p`；Seedance 2.5 用 `480p` 或 `720p`，不要请求 `1080p`。
 - `metadata.ratio` 用 `16:9`、`9:16` 或用户指定的受支持比例。
-- `metadata.generate_audio` 默认 `false`（对应默认的无 BGM 策略）；原生声音项目改 `true`，并配合 [audio-production.md](audio-production.md)。
+- `metadata.generate_audio` 恒为 `true`：模型生成对白、环境音和音效。音乐由 Prompt 控制，不由这个参数控制。详见 [audio-production.md](audio-production.md)。
 - 参考媒体必须是生成侧可访问的公网 URL，本地文件先上传。
 - 不把 API Key、Authorization header 或临时凭据写进 skill、脚本、日志或生产包。
 
@@ -111,7 +93,7 @@ reference_content = [
         "role": "reference_image",
     },
 ]
-if dialogue_slice_url:  # 原生对白项目才加
+if dialogue_slice_url:  # 该片段有出镜对白时加
     reference_content.append({
         "type": "audio_url",
         "audio_url": {"url": dialogue_slice_url},
@@ -128,7 +110,7 @@ payload = {
         "content": reference_content,
         "resolution": resolution,
         "ratio": "16:9",
-        "generate_audio": bool(dialogue_slice_url) or native_audio,
+        "generate_audio": True,  # 模型出对白/环境音/音效；音乐由 AUDIO RULE 禁止
         "duration": duration,
     },
 }

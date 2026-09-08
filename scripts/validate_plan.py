@@ -13,7 +13,6 @@ EPSILON = 1e-6
 LOCKED_CAMERA_WORDS = {"locked", "fixed", "static", "锁定", "固定", "静止"}
 # duration -> required shot count, from the ceil(duration / 3) density rule
 SHOT_COUNTS = {15: 5, 30: 10}
-AUDIO_MODES = {"sfx_only", "native"}
 
 
 def fail(errors: list[str], path: str, message: str) -> None:
@@ -33,11 +32,6 @@ def validate(path: Path) -> tuple[list[str], list[str]]:
 
     if not isinstance(segments, list) or not segments:
         return ["segments: expected a non-empty array"], warnings
-
-    audio_mode = str(project.get("audio_mode", "sfx_only")).strip().lower()
-    if audio_mode not in AUDIO_MODES:
-        fail(errors, "project.audio_mode", f"expected one of {sorted(AUDIO_MODES)}")
-        audio_mode = "sfx_only"
 
     durations = [s.get("duration_seconds") for s in segments if isinstance(s, dict)]
     expected_total = sum(d for d in durations if number(d))
@@ -126,23 +120,17 @@ def validate(path: Path) -> tuple[list[str], list[str]]:
         audio = segment.get("audio", {})
         if not isinstance(audio.get("events"), list) or not audio.get("events"):
             fail(errors, f"{base}.audio.events", "must list at least one ambience or SFX event")
-        if audio_mode == "sfx_only":
-            if audio.get("bgm") is not False:
-                fail(errors, f"{base}.audio.bgm", "must be false in sfx_only mode")
-            if audio.get("sfx_only") is not True:
-                fail(errors, f"{base}.audio.sfx_only", "must be true in sfx_only mode")
-        else:
-            if not str(audio.get("bgm_identity", "")).strip():
-                fail(errors, f"{base}.audio.bgm_identity", "native mode must name the immutable BGM identity")
-            for line_index, line in enumerate(audio.get("dialogue", []) or []):
-                line_path = f"{base}.audio.dialogue[{line_index}]"
-                if not isinstance(line, dict):
-                    fail(errors, line_path, "expected an object")
-                    continue
-                if not str(line.get("character", "")).strip():
-                    fail(errors, f"{line_path}.character", "must name the speaker")
-                if not str(line.get("audio_ref", "")).strip():
-                    fail(errors, f"{line_path}.audio_ref", "must point at this segment's exact dialogue slice")
+        if audio.get("bgm") is not False:
+            fail(errors, f"{base}.audio.bgm", "must be false; the BGM is added as a separate track after assembly")
+        for line_index, line in enumerate(audio.get("dialogue", []) or []):
+            line_path = f"{base}.audio.dialogue[{line_index}]"
+            if not isinstance(line, dict):
+                fail(errors, line_path, "expected an object")
+                continue
+            if not str(line.get("character", "")).strip():
+                fail(errors, f"{line_path}.character", "must name the speaker")
+            if not str(line.get("audio_ref", "")).strip():
+                fail(errors, f"{line_path}.audio_ref", "must point at this segment's exact dialogue slice")
 
         prompt = str(segment.get("video_prompt", "")).lower()
         required_sections = ("subjects", "environment", "style", "continuity", "audio rule", "timeline")
@@ -155,18 +143,11 @@ def validate(path: Path) -> tuple[list[str], list[str]]:
             hard_cuts = prompt.count("hard cut in")
             if hard_cuts < required_shots - 1:
                 fail(errors, f"{base}.video_prompt", f"shots 02-{required_shots:02d} must each say HARD CUT IN ({required_shots - 1} expected, found {hard_cuts})")
-        if audio_mode == "sfx_only":
-            no_music = any(token in prompt for token in ("no bgm", "无bgm", "不要bgm", "no music", "无音乐"))
-            sfx_only = any(token in prompt for token in ("sfx only", "sound effects only", "仅音效", "只有音效"))
-            if not no_music:
-                fail(errors, f"{base}.video_prompt", "must explicitly prohibit BGM/music")
-            if not sfx_only:
-                fail(errors, f"{base}.video_prompt", "must explicitly request SFX only")
-        else:
-            if "bgm" not in prompt:
-                fail(errors, f"{base}.video_prompt", "native mode must state the BGM identity")
-            if "dialogue" not in prompt:
-                fail(errors, f"{base}.video_prompt", "native mode must state dialogue lines or 'Dialogue: none'")
+        no_music = any(token in prompt for token in ("no bgm", "无bgm", "不要bgm", "no music", "无音乐"))
+        if not no_music:
+            fail(errors, f"{base}.video_prompt", "must explicitly prohibit model-generated BGM/music")
+        if "dialogue" not in prompt:
+            fail(errors, f"{base}.video_prompt", "must state dialogue lines or 'Dialogue: none'")
 
     return errors, warnings
 
